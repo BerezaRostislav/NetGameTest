@@ -1,6 +1,13 @@
 <template>
-  <div>
-    <button @click="addNote">Add Note</button>
+  <v-container>
+    <v-row align="center" justify="start">
+      <v-col cols="auto">
+        <v-btn @click="addNote" density="comfortable" icon="mdi-plus" ></v-btn>
+      </v-col>
+      <v-col cols="auto">
+        <v-btn @click="deleteActiveNote" :disabled="!activeNote" density="comfortable" icon="mdi-trash-can-outline"></v-btn>
+      </v-col>
+    </v-row>
     <NoteCard
       v-for="note in noteObjects"
       :key="note.id"
@@ -8,7 +15,7 @@
       :isActive="activeNote === note"
       @click="setActiveNote(note)"
     />
-  </div>
+    </v-container>
 </template>
 
 <script lang="ts">
@@ -45,6 +52,16 @@ export default defineComponent({
       noteObjectsRef.value.push(newNote)
     }
 
+    const deleteActiveNote = () => {
+      if (activeNote.value) {
+        const index = noteObjectsRef.value.findIndex(note => note === activeNote.value)
+        if (index !== -1) {
+          noteObjectsRef.value.splice(index, 1)
+          activeNote.value = null
+        }
+      }
+    }
+
     const setActiveNote = (note: Note) => {
       activeNote.value = note === activeNote.value ? null : note
     }
@@ -53,7 +70,8 @@ export default defineComponent({
       noteObjects: noteObjectsRef,
       activeNote,
       addNote,
-      setActiveNote
+      setActiveNote,
+      deleteActiveNote
     }
   }
 })

@@ -29,6 +29,7 @@
 </template>
 
 <script setup>
+import 'material-design-icons-iconfont/dist/material-design-icons.css'
 import { ref } from 'vue'
 
 const dividerPosition = ref(25)
