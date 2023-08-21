@@ -2,7 +2,7 @@
   <div class="note-card" :class="{ 'active': isActive }">
     <div class="title">{{ note.title }}</div>
     <div class="info">
-      <span class="created-time">{{ note.created_time }}</span>
+      <span class="created-time">{{ formatTime(note.created_time) }}</span>
       <span class="short-text">{{ note.short_text }}</span>
     </div>
   </div>
@@ -24,6 +24,13 @@ export default defineComponent ({
       type: Object as PropType<Note>
     },
     isActive: Boolean
+  },
+  methods: {
+    formatTime(time: string): string {
+      const [datePart, timePart] = time.split(' ');
+      const [hours, minutes] = timePart.split(':');
+      return `${hours}:${minutes}`;
+    }
   }
 })
 </script>
