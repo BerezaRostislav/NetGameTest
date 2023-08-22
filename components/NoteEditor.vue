@@ -5,7 +5,7 @@
         <v-btn @click="editMode = !editMode" flat density="comfortable" icon="mdi-pencil"></v-btn>
       </v-col>
       <v-col cols="auto">
-        <v-text-field v-model="searchText" label="Search"></v-text-field>
+        <SearchInput />
       </v-col>
     </v-row>
 
@@ -40,7 +40,7 @@ import { useNoteStore } from '@/stores/notes.ts';
 
 const noteStore = useNoteStore();
 const editedText = ref('');
-const editMode = ref(false);
+const editMode = ref(true);
 const searchText = ref('');
 
 const CreatedTime = computed(() => {
@@ -82,8 +82,7 @@ function saveNote() {
   }
 
   .input-area {
-    // min-height: 80vh;
-
+    
     .v-field__outline {
       display: none !important;
     }

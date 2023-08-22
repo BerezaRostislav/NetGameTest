@@ -10,6 +10,7 @@ interface Note {
 
 export const useNoteStore = defineStore('noteStore', {
   state: () => ({
+    originalNoteObjects: [] as Note[],
     noteObjects: [] as Note[],
     activeNote: null as Note | null,
     deleteConfirmation: false,
@@ -17,7 +18,12 @@ export const useNoteStore = defineStore('noteStore', {
 
   actions: {
     async initialize() {
-      this.noteObjects = await this.loadNoteObjectsFromIndexedDB();
+      this.originalNoteObjects = await this.loadNoteObjectsFromIndexedDB();
+      this.noteObjects = this.originalNoteObjects;
+
+      if (this.noteObjects.length > 0) {
+        this.activeNote = this.noteObjects[0];
+      }
     },
 
     async openNoteDB() {
@@ -30,6 +36,19 @@ export const useNoteStore = defineStore('noteStore', {
       });
 
       return db;
+    },
+
+    async searchNotes(searchText: string) {
+      const normalizedSearchText = searchText.toLowerCase();
+    
+      if (!normalizedSearchText) {
+        this.noteObjects = this.originalNoteObjects;
+      } else {
+        const filteredNotes = this.originalNoteObjects.filter((note) =>
+          note.short_text.toLowerCase().includes(normalizedSearchText)
+        );
+        this.noteObjects = filteredNotes;
+      }
     },
 
     async saveNoteObjectsToIndexedDB(noteObjects: Note[]) {
@@ -67,26 +86,33 @@ export const useNoteStore = defineStore('noteStore', {
 
       const newNote: Note = {
         id: id,
-        title: 'title',
+        title: '',
         created_time: formattedTime,
-        short_text: 'short text',
+        short_text: '',
       };
 
       this.noteObjects.push(newNote);
       await this.saveNoteObjectsToIndexedDB(this.noteObjects);
+
+      this.activeNote = newNote;
     },
 
     async deleteActiveNote() {
       if (this.activeNote) {
         const db = await this.openNoteDB();
         await db.delete('notes', this.activeNote.id);
-
+    
         const index = this.noteObjects.findIndex((note) => note === this.activeNote);
         if (index !== -1) {
           this.noteObjects.splice(index, 1);
-          this.activeNote = null;
           this.deleteConfirmation = false;
-
+    
+          if (this.noteObjects.length > 0) {
+            this.activeNote = this.noteObjects[0];
+          } else {
+            this.activeNote = null;
+          }
+    
           await this.saveNoteObjectsToIndexedDB(this.noteObjects);
         }
       }
