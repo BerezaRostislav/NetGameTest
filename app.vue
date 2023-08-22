@@ -31,7 +31,10 @@
 import { ref } from 'vue'
 import { useNoteStore } from '@/stores/notes.ts';
 
-useNoteStore().initialize();
+
+onMounted(() => {
+  useNoteStore().initialize();
+});
 
 const dividerPosition = ref(25)
 

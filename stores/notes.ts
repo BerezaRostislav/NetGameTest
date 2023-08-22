@@ -44,7 +44,7 @@ export const useNoteStore = defineStore('noteStore', {
       if (!normalizedSearchText) {
         this.noteObjects = this.originalNoteObjects;
       } else {
-        const filteredNotes = this.originalNoteObjects.filter((note) =>
+        const filteredNotes = this.originalNoteObjects.filter((note: { short_text: string; }) =>
           note.short_text.toLowerCase().includes(normalizedSearchText)
         );
         this.noteObjects = filteredNotes;
@@ -102,7 +102,7 @@ export const useNoteStore = defineStore('noteStore', {
         const db = await this.openNoteDB();
         await db.delete('notes', this.activeNote.id);
     
-        const index = this.noteObjects.findIndex((note) => note === this.activeNote);
+        const index = this.noteObjects.findIndex((note: any) => note === this.activeNote);
         if (index !== -1) {
           this.noteObjects.splice(index, 1);
           this.deleteConfirmation = false;
