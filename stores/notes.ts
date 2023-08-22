@@ -18,33 +18,37 @@ export const useNoteStore = defineStore('noteStore', {
 
   actions: {
     async initialize() {
-      this.originalNoteObjects = await this.loadNoteObjectsFromIndexedDB();
-      this.noteObjects = this.originalNoteObjects;
+      if (typeof window !== 'undefined' && 'indexedDB' in window) {
+        this.originalNoteObjects = await this.loadNoteObjectsFromIndexedDB();
+        this.noteObjects = this.originalNoteObjects;
 
-      if (this.noteObjects.length > 0) {
-        this.activeNote = this.noteObjects[0];
+        if (this.noteObjects.length > 0) {
+          this.activeNote = this.noteObjects[0];
+        }
       }
     },
 
     async openNoteDB() {
-      const db = await openDB('noteAppDB', 1, {
-        upgrade(db) {
-          if (!db.objectStoreNames.contains('notes')) {
-            db.createObjectStore('notes', { keyPath: 'id' });
-          }
-        },
-      });
+      if (typeof window !== 'undefined' && 'indexedDB' in window) {
+        const db = await openDB('noteAppDB', 1, {
+          upgrade(db) {
+            if (!db.objectStoreNames.contains('notes')) {
+              db.createObjectStore('notes', { keyPath: 'id' });
+            }
+          },
+        });
 
-      return db;
+        return db;
+      }
     },
 
     async searchNotes(searchText: string) {
       const normalizedSearchText = searchText.toLowerCase();
-    
+
       if (!normalizedSearchText) {
         this.noteObjects = this.originalNoteObjects;
       } else {
-        const filteredNotes = this.originalNoteObjects.filter((note: { short_text: string; }) =>
+        const filteredNotes = this.originalNoteObjects.filter((note: { short_text: string }) =>
           note.short_text.toLowerCase().includes(normalizedSearchText)
         );
         this.noteObjects = filteredNotes;
@@ -52,67 +56,74 @@ export const useNoteStore = defineStore('noteStore', {
     },
 
     async saveNoteObjectsToIndexedDB(noteObjects: Note[]) {
-      const db = await this.openNoteDB();
-      const tx = db.transaction('notes', 'readwrite');
-      const store = tx.objectStore('notes');
-      
-      const serializedNotes = noteObjects.map((note) => ({
-        id: note.id,
-        title: note.title,
-        created_time: note.created_time,
-        short_text: note.short_text,
-      }));
+      if (typeof window !== 'undefined' && 'indexedDB' in window) {
+        const db = await this.openNoteDB();
+        const tx = db.transaction('notes', 'readwrite');
+        const store = tx.objectStore('notes');
 
-      await Promise.all(serializedNotes.map((note) => store.put(note)));
+        const serializedNotes = noteObjects.map((note) => ({
+          id: note.id,
+          title: note.title,
+          created_time: note.created_time,
+          short_text: note.short_text,
+        }));
+
+        await Promise.all(serializedNotes.map((note) => store.put(note)));
+      }
     },
 
     async loadNoteObjectsFromIndexedDB(): Promise<Note[]> {
-      const db = await this.openNoteDB();
-      const tx = db.transaction('notes', 'readonly');
-      const store = tx.objectStore('notes');
-      const serializedNotes: any[] = await store.getAll();
-      return serializedNotes.map((note) => ({
-        id: note.id,
-        title: note.title,
-        created_time: note.created_time,
-        short_text: note.short_text,
-      }));
+      if (typeof window !== 'undefined' && 'indexedDB' in window) {
+        const db = await this.openNoteDB();
+        const tx = db.transaction('notes', 'readonly');
+        const store = tx.objectStore('notes');
+        const serializedNotes: any[] = await store.getAll();
+        return serializedNotes.map((note) => ({
+          id: note.id,
+          title: note.title,
+          created_time: note.created_time,
+          short_text: note.short_text,
+        }));
+      }
+      return [];
     },
 
     async addNote() {
-      const currentTime = new Date();
-      const formattedTime = `${this.formatDate(currentTime)} ${this.formatTime(currentTime)}`;
-      const id = this.noteObjects.length;
+      if (typeof window !== 'undefined' && 'indexedDB' in window) {
+        const currentTime = new Date();
+        const formattedTime = `${this.formatDate(currentTime)} ${this.formatTime(currentTime)}`;
+        const id = this.noteObjects.length;
 
-      const newNote: Note = {
-        id: id,
-        title: '',
-        created_time: formattedTime,
-        short_text: '',
-      };
+        const newNote: Note = {
+          id: id,
+          title: '',
+          created_time: formattedTime,
+          short_text: '',
+        };
 
-      this.noteObjects.push(newNote);
-      await this.saveNoteObjectsToIndexedDB(this.noteObjects);
+        this.noteObjects.push(newNote);
+        await this.saveNoteObjectsToIndexedDB(this.noteObjects);
 
-      this.activeNote = newNote;
+        this.activeNote = newNote;
+      }
     },
 
     async deleteActiveNote() {
-      if (this.activeNote) {
+      if (typeof window !== 'undefined' && 'indexedDB' in window && this.activeNote) {
         const db = await this.openNoteDB();
         await db.delete('notes', this.activeNote.id);
-    
+
         const index = this.noteObjects.findIndex((note: any) => note === this.activeNote);
         if (index !== -1) {
           this.noteObjects.splice(index, 1);
           this.deleteConfirmation = false;
-    
+
           if (this.noteObjects.length > 0) {
             this.activeNote = this.noteObjects[0];
           } else {
             this.activeNote = null;
           }
-    
+
           await this.saveNoteObjectsToIndexedDB(this.noteObjects);
         }
       }
@@ -136,7 +147,6 @@ export const useNoteStore = defineStore('noteStore', {
       const year = date.getFullYear();
       return `${day}/${month}/${year}`;
     },
-
 
     formatTime(date: Date): string {
       const hours = String(date.getHours()).padStart(2, '0');
