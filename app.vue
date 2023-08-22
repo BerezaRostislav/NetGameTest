@@ -21,8 +21,7 @@
         width: `${100 - dividerPosition}%`
       }"
     >
-      <div class="div2"></div>
-      <div class="div3"></div>
+      <NoteEditor />
     </div>
   </div>
   
@@ -30,6 +29,9 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useNoteStore } from '@/stores/notes.ts';
+
+useNoteStore().initialize();
 
 const dividerPosition = ref(25)
 
@@ -51,7 +53,7 @@ function endDragging () {
 
 </script>
 
-<style>
+<style lang="scss">
 
 .wrapper {
   height: 100vh;
