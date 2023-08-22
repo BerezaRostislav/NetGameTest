@@ -55,6 +55,9 @@ export default defineComponent ({
 
   .title {
     font-size: 18px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .info {
@@ -68,6 +71,9 @@ export default defineComponent ({
 
     .short-text {
       color: darkgray;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
 }
